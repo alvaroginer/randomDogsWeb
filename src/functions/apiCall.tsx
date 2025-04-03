@@ -17,11 +17,10 @@ export async function getRandomDogData(
       throw new Error(`Response status: ${response.status}`);
     }
 
-    const json = await response.json();
+    const json: { message: string; status: string } = await response.json();
 
-    // TODO random breed
     return {
-      id: Date.now() + Math.random(),
+      id: Math.floor(Date.now() + Math.random() * 1000),
       breed,
       imgUrl: json.message,
       dislikeCount: getRandomInt(0, 2),
@@ -30,6 +29,19 @@ export async function getRandomDogData(
   } catch (error: any) {
     console.error(error.message);
   }
+}
 
-  return undefined;
+export async function fetchBreeds(): Promise<string[] | undefined> {
+  try {
+    const response = await fetch("https://dog.ceo/api/breeds/list/all");
+
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return Object.keys(data.message);
+  } catch (error: any) {
+    console.error(error.message);
+  }
 }

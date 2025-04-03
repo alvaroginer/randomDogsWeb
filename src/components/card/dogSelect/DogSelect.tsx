@@ -1,34 +1,31 @@
 import { useState, useEffect } from "react";
+import { fetchBreeds } from "../../../functions/apiCall";
 
 export const DogSelect = ({
-  onChange,
+  selectBreed,
 }: {
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  selectBreed: (breed: string) => void;
 }) => {
   const [breeds, setBreeds] = useState<string[]>([]);
 
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    selectBreed(event.target.value);
+  };
+
   useEffect(() => {
-    async function fetchBreeds() {
-      try {
-        const response = await fetch("https://dog.ceo/api/breeds/list/all");
-
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setBreeds(Object.keys(data.message));
-      } catch (error: any) {
-        console.error(error.message);
+    const handleBreeds = async () => {
+      const breedsList = await fetchBreeds();
+      if (breedsList) {
+        selectBreed(breedsList[0]);
+        setBreeds(breedsList);
       }
-    }
+    };
 
-    fetchBreeds();
+    handleBreeds();
   }, []);
 
   return (
-    <select name="breeds" id="breeds-picker" onChange={onChange}>
-      <option value="">Selecciona una raza</option>
+    <select name="breeds" id="breeds-picker" onChange={handleChange}>
       {breeds.map((breed) => (
         <option key={breed} value={breed}>
           {breed}

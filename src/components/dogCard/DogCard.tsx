@@ -6,8 +6,8 @@ export interface DogData {
   likeCount: number;
 }
 
-export const DogCard = (props: DogData) => {
-  const { imgUrl, likeCount, dislikeCount } = props;
+export const DogCard = ({ dogData }: { dogData: DogData }) => {
+  const { imgUrl, likeCount, dislikeCount } = dogData;
 
   return (
     <div className="card">

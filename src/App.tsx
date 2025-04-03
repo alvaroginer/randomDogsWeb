@@ -9,29 +9,27 @@ function App() {
   const [dogsList, setDogsList] = useState<DogData[]>([]);
   const [selectValue, setSelectValue] = useState<string>("");
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectValue(event.target.value);
-  };
-
   const handleAddDogs = async (value: number, start: boolean) => {
     let i: number;
     for (i = 0; i < value; i++) {
       const newDog = await getRandomDogData(selectValue);
       console.log(newDog);
       if (start) {
-        setDogsList([newDog, ...dogsList]);
+        setDogsList((prevDogs) => [newDog, ...prevDogs]);
       } else {
-        setDogsList([...dogsList, newDog]);
+        setDogsList((prevDogs) => [...prevDogs, newDog]);
       }
     }
   };
+
+  console.log(dogsList);
 
   return (
     <>
       <h1>Votalperrico</h1>
       <div>
         Selecciona la raza del perro que quieras añadir
-        <DogSelect onChange={handleChange} />
+        <DogSelect selectBreed={setSelectValue} />
       </div>
       <p id="add-warning" style={{ display: "none" }}>
         Pulsa algún botón para añadir perricos
