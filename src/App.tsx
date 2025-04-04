@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DogCard, DogData } from "./components/dogCard/DogCard";
 import { DogSelect } from "./components/card/dogSelect/DogSelect";
 import { getRandomDogData } from "./functions/apiCall";
@@ -8,6 +8,8 @@ import "./App.css";
 function App() {
   const [dogsList, setDogsList] = useState<DogData[]>([]);
   const [selectValue, setSelectValue] = useState<string>("");
+  const [filteredDogList, setFilteredDogList] = useState<DogData[]>([]);
+  const [isFilterActive, setIsFilterActive] = useState<boolean>(false);
 
   const handleAddDogs = async (value: number, start: boolean) => {
     let i: number;
@@ -22,7 +24,19 @@ function App() {
     }
   };
 
-  console.log(dogsList);
+  useEffect(() => {
+    setFilteredDogList([...dogsList]);
+    if (filterbyLike) {
+      setFilteredDogList(filteredDogList.filter((dog) => dog.likeCount > 0));
+    }
+
+    if (!filterbyLike) {
+      setFilteredDogList(filteredDogList.filter((dog) => dog.dislikeCount > 0));
+    }
+  }, [dogsList, filteredDogList]);
+
+  console.log("lista sin filtrar", dogsList);
+  console.log("lista filtrada", filteredDogList);
 
   return (
     <>
@@ -58,16 +72,24 @@ function App() {
       <button id="test">probar api</button>
       <div className="filters">
         <span> Filter by: </span>
-        <button id="like-filter">Preciosisimos ❤️</button>
-        <button id="dislike-filter">Feísimos 🤮</button>
+        <button id="like-filter" onClick={() => true}>
+          Preciosisimos ❤️
+        </button>
+        <button id="dislike-filter" onClick={() => false}>
+          Feísimos 🤮
+        </button>
       </div>
       <div className="breed-filters" style={{ display: "none" }}>
         <span> Filter by breed: </span>
       </div>
       <div id="dog-list">
-        {dogsList.map((dog: DogData) => {
-          return <DogCard key={dog.id} dogData={dog} />;
-        })}
+        {!isFilterActive
+          ? dogsList.map((dog: DogData) => {
+              return <DogCard key={dog.id} dogData={dog} />;
+            })
+          : filteredDogList.map((dog: DogData) => {
+              return <DogCard key={dog.id} dogData={dog} />;
+            })}
       </div>
     </>
   );

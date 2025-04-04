@@ -1,3 +1,4 @@
+import { useState } from "react";
 export interface DogData {
   id: number;
   breed: string;
@@ -8,17 +9,31 @@ export interface DogData {
 
 export const DogCard = ({ dogData }: { dogData: DogData }) => {
   const { imgUrl, likeCount, dislikeCount } = dogData;
+  const [totalLikes, setTotalLikes] = useState<number>(likeCount);
+  const [totalDisLikes, setTotalDisLikes] = useState<number>(dislikeCount);
+
+  const addCount = (isLike: boolean) => {
+    if (isLike) {
+      setTotalLikes(totalLikes + 1);
+    } else {
+      setTotalDisLikes(totalDisLikes + 1);
+    }
+  };
 
   return (
     <div className="card">
       <img src={imgUrl} alt="Perro" />
       <br />
       <p>
-        <span className="like-count">{likeCount}</span>❤️
-        <span className="dislike-count">{dislikeCount}</span>🤮
+        <span className="like-count">{totalLikes}</span>❤️
+        <span className="dislike-count">{totalDisLikes}</span>🤮
       </p>
-      <button className="like">Preciosísimo</button>
-      <button className="dislike">Feísisimo</button>
+      <button className="like" onClick={() => addCount(true)}>
+        Preciosísimo
+      </button>
+      <button className="dislike" onClick={() => addCount(false)}>
+        Feísisimo
+      </button>
     </div>
   );
 };
