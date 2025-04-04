@@ -5,17 +5,71 @@ import { getRandomDogData } from "./functions/apiCall";
 import "./index.css";
 import "./App.css";
 
+// Crear un useState que sea un objeto con el nombre de las propiedades de razas de perros y el valor pues el número de perros de esa raza
+// crea otro useState con los diferentes estado sde los botones y que se vaya actualizando y añadiendo en función de los botones que hay, hay que tiparlo de la siguiente manera <Record(string: nombre de la raza): boolean (dar falso de momento)
+// hay que crear un if más dentro del useEffect en el que ponga que solo se muestren las razas que sean true en el useState de allbreedsinList
+// Luego hacer un {allBreedsinList.map} y poner que si el valor es mayor que uno entonces que aparezca el número
+// en la función de handleAddDogs hay que añadir que se añadan las razas al useState de las razas
+
 function App() {
   const [dogsList, setDogsList] = useState<DogData[]>([]);
   const [selectValue, setSelectValue] = useState<string>("");
   const [filteredDogList, setFilteredDogList] = useState<DogData[]>([]);
-  const [isFilterActive, setIsFilterActive] = useState<boolean>(false);
+  const [isLikeActive, setIsLikeActive] = useState<boolean>(false);
+  const [isDislikeActive, setIsDislikeActive] = useState<boolean>(false);
+  const [listAllBreeds, setListAllBreeds] = useState<Record<string, number>>(
+    {}
+  );
+
+  useEffect(() => {
+    setFilteredDogList([...dogsList]);
+
+    if (isLikeActive) {
+      setFilteredDogList((prevFilterDogList) =>
+        prevFilterDogList.filter((dog) => dog.likeCount > 0)
+      );
+    }
+
+    if (isDislikeActive) {
+      setFilteredDogList((prevFilterDogList) =>
+        prevFilterDogList.filter((dog) => dog.dislikeCount > 0)
+      );
+    }
+  }, [isLikeActive, isDislikeActive, dogsList]);
+
+  useEffect(() => {
+    setListAllBreeds(
+      dogsList.reduce((acc: Record<string, number>, dog) => {
+        const breed = dog.breed;
+
+        acc[breed] = (acc[breed] || 0) + 1;
+        return acc;
+      }, {})
+    );
+  }, [dogsList]);
 
   const handleAddDogs = async (value: number, start: boolean) => {
     let i: number;
     for (i = 0; i < value; i++) {
       const newDog = await getRandomDogData(selectValue);
       console.log(newDog);
+      const newDogBreed: string = newDog?.breed;
+
+      //Aquí añadimos las razas al objeto de las razas en la lista
+      //Problema, cuando añadimos 5 perros el listado no se actualiza
+      if (listAllBreeds[newDogBreed]) {
+        setListAllBreeds((prevListAllBreeds) => ({
+          ...prevListAllBreeds,
+          [newDogBreed]: prevListAllBreeds[newDogBreed] + 1,
+        }));
+      } else {
+        setListAllBreeds((prevListAllBreeds) => ({
+          ...prevListAllBreeds,
+          [newDogBreed]: 1,
+        }));
+      }
+
+      //Aquí decidimos donde añadir el perro
       if (start) {
         setDogsList((prevDogs) => [newDog, ...prevDogs]);
       } else {
@@ -23,20 +77,7 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    setFilteredDogList([...dogsList]);
-    if (filterbyLike) {
-      setFilteredDogList(filteredDogList.filter((dog) => dog.likeCount > 0));
-    }
-
-    if (!filterbyLike) {
-      setFilteredDogList(filteredDogList.filter((dog) => dog.dislikeCount > 0));
-    }
-  }, [dogsList, filteredDogList]);
-
-  console.log("lista sin filtrar", dogsList);
-  console.log("lista filtrada", filteredDogList);
+  console.log(listAllBreeds);
 
   return (
     <>
@@ -72,18 +113,35 @@ function App() {
       <button id="test">probar api</button>
       <div className="filters">
         <span> Filter by: </span>
-        <button id="like-filter" onClick={() => true}>
+        <button
+          id="like-filter"
+          className={isLikeActive ? "filter-selected" : ""}
+          onClick={() => setIsLikeActive(!isLikeActive)}
+        >
           Preciosisimos ❤️
         </button>
-        <button id="dislike-filter" onClick={() => false}>
+        <button
+          id="dislike-filter"
+          className={isDislikeActive ? "filter-selected" : ""}
+          onClick={() => setIsDislikeActive(!isDislikeActive)}
+        >
           Feísimos 🤮
         </button>
       </div>
-      <div className="breed-filters" style={{ display: "none" }}>
-        <span> Filter by breed: </span>
+      <div className="breed-filters">
+        <p> Filter by breed:</p>
+        {Object.keys(listAllBreeds).map((breed) => {
+          return (
+            <button key={breed}>
+              {listAllBreeds[breed] < 1
+                ? `${breed}`
+                : `${breed} (${listAllBreeds[breed]})`}
+            </button>
+          );
+        })}
       </div>
       <div id="dog-list">
-        {!isFilterActive
+        {!isLikeActive && !isDislikeActive
           ? dogsList.map((dog: DogData) => {
               return <DogCard key={dog.id} dogData={dog} />;
             })
