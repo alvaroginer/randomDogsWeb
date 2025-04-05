@@ -20,6 +20,7 @@ function App() {
   const [listAllBreeds, setListAllBreeds] = useState<Record<string, number>>(
     {}
   );
+  const [breedsState, setBreedsState] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setFilteredDogList([...dogsList]);
@@ -35,7 +36,14 @@ function App() {
         prevFilterDogList.filter((dog) => dog.dislikeCount > 0)
       );
     }
-  }, [isLikeActive, isDislikeActive, dogsList]);
+
+    if (Object.values(breedsState).includes(true)) {
+      setFilteredDogList((prevFilterDogList) =>
+        prevFilterDogList.filter((dog) => breedsState[dog.breed] === true)
+      );
+    }
+  }, [isLikeActive, isDislikeActive, dogsList, breedsState]);
+  console.log("filtered list", filteredDogList);
 
   useEffect(() => {
     setListAllBreeds(
@@ -55,8 +63,14 @@ function App() {
       console.log(newDog);
       const newDogBreed: string = newDog?.breed;
 
+      //Creamos el objeto breedsSate
+      setBreedsState(
+        breedsState[newDogBreed]
+          ? { ...breedsState }
+          : { ...breedsState, [newDogBreed]: false }
+      );
+
       //Aquí añadimos las razas al objeto de las razas en la lista
-      //Problema, cuando añadimos 5 perros el listado no se actualiza
       if (listAllBreeds[newDogBreed]) {
         setListAllBreeds((prevListAllBreeds) => ({
           ...prevListAllBreeds,
@@ -77,7 +91,12 @@ function App() {
       }
     }
   };
-  console.log(listAllBreeds);
+
+  //Modificamos el estado de los breeds en el useState
+  const handleBreedsState = (breed: string) => {
+    setBreedsState({ ...breedsState, [breed]: !breedsState[breed] });
+  };
+  console.log("breedsState", breedsState);
 
   return (
     <>
@@ -132,7 +151,11 @@ function App() {
         <p> Filter by breed:</p>
         {Object.keys(listAllBreeds).map((breed) => {
           return (
-            <button key={breed}>
+            <button
+              key={breed}
+              className={breedsState[breed] === true ? "filter-selected" : ""}
+              onClick={() => handleBreedsState(breed)}
+            >
               {listAllBreeds[breed] < 1
                 ? `${breed}`
                 : `${breed} (${listAllBreeds[breed]})`}
@@ -141,7 +164,9 @@ function App() {
         })}
       </div>
       <div id="dog-list">
-        {!isLikeActive && !isDislikeActive
+        {!isLikeActive &&
+        !isDislikeActive &&
+        !Object.values(breedsState).includes(true)
           ? dogsList.map((dog: DogData) => {
               return <DogCard key={dog.id} dogData={dog} />;
             })
