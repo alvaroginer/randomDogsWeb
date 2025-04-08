@@ -129,7 +129,6 @@ function App() {
       >
         Añadir 5 perricos más
       </button>
-      <button id="test">probar api</button>
       <div className="filters">
         <span> Filter by: </span>
         <button
